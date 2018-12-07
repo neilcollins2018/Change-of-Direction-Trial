@@ -29,7 +29,7 @@ GPS2 %<>%
   group_by(Name, Match) %>%
   dplyr::mutate("BearingDiff" = c(NA, diff(Bearing)))
 
-###Speed matrics
+###Speed metrics
 GPS3 <- GPS2 %>%
   mutate("SpeedHS" = case_when(Velocity <= 5.5 ~ 0,
                                Velocity > 5.5 ~ Velocity),
