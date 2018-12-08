@@ -21,6 +21,12 @@ C_A <- list.files(path="ADD FILE PATH HERE",
   map_df(function(x) read_plus2(x))
 
 GPS2 <-C_A 
+         
+#####Cutting data to 1.5secs between data points
+GPS3 <- C_A %>%
+  group_by(Name, cut(Seconds, breaks = seq(-0.00001, 8000, 1.5))) %>%
+  slice(1)
+         
 
 ####Lead long/lat
 GPS2 %<>%
@@ -55,8 +61,8 @@ GPS3 <- GPS2 %>%
          Dist_HS = SpeedHS*Time_diff,
          Dist_SD = SpeedSD*Time_diff)
 
-###Dummy values based on difference in bearing values ----Could Alter to differentiate between left and right COD
-GPS3 %<>%
+###Dummy values based on difference in bearing values ----Could Alter to differentiate between left and right COD         
+GPS4 <- GPS3 %>%
   mutate(COD_Magnitude = case_when(BearingDiff <= 0.05 & BearingDiff >= -0.05 ~ 'StraightLine',
                                 BearingDiff > 0.05 & BearingDiff >= 0.1 ~ "Minor",
                                 BearingDiff < -0.05 & BearingDiff >=-0.1 ~ "Minor",
@@ -65,7 +71,18 @@ GPS3 %<>%
                                 BearingDiff > 1 & BearingDiff <= 2 ~ "High",
                                 BearingDiff < -1 & BearingDiff >= -2 ~ "High",
                                 BearingDiff > 2  ~ "V_High",
-                                BearingDiff < -2  ~ "V_High"))
+                                BearingDiff < -2  ~ "V_High")) %>%
+  select(c(13, 19, 25)) %>% ungroup()
+
+####Looking at a count of different COD Magnitudes
+test <- GPS4 %>%
+  filter(complete.cases(.)) %>%
+  group_by(Name) %>%
+  mutate(test_run = streak_run(COD_Magnitude)) %>%
+  filter(!test_run > 1) %>% ungroup() %>%
+  group_by(Name, COD_Magnitude) %>%
+  dplyr::summarise(count = length(COD_Magnitude))
+
 
 ###Add factor and levels 
 GPS3$COD_Magnitude <- factor(GPS3$COD_Magnitude, levels = 
