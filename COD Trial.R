@@ -1,3 +1,13 @@
+library(readxl)
+library(smooth)
+library(tidyverse)
+library(zoo)
+library(magrittr)
+library(geosphere)
+library(NISTunits)
+
+
+
 read_plus2 <- function(flnm) {
   fread(flnm, skip = 8) %>%
     mutate(filename=gsub(" .csv", "", basename(flnm))) %>%
